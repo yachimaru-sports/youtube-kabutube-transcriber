@@ -1,0 +1,61 @@
+name: Jumping Point 株Tube 文字起こし自動収集・Drive保存
+
+on:
+  schedule:
+    # 毎日 日本時間 21:00（UTC 12:00）に実行
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'ドライラン（true の場合、Drive保存と履歴更新をスキップ）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: write
+
+jobs:
+  transcribe-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 依存パッケージのインストール
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 新着動画の検知・文字起こし・Googleドライブ保存
+        env:
+          YOUTUBE_CHANNEL_ID: UCgDa6dxD3jPElw6eCvL1T2g
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GDRIVE_DUPLICATE_POLICY: skip
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          python scripts/main.py
+
+      - name: 処理済み動画ID履歴のコミット＆プッシュ
+        if: ${{ (github.event.inputs.dry_run || 'false') != 'true' }}
+        run: |
+          if git diff --quiet data/processed_ids.json; then
+            echo "processed_ids.json に変更はありません。"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/processed_ids.json
+            git commit -m "chore: 処理済み動画IDを更新 ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+            git push
+          fi

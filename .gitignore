@@ -1,0 +1,24 @@
+# 環境変数・認証情報
+.env
+.env.*
+!.env.example
+*service_account*.json
+*credentials*.json
+
+# Python / 仮想環境
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+tmp_out/
+tmp_dry_run/
+
+# ローカル一括収集パイプライン（GitHub Actions対象外）
+lionmaru_lecture_pipeline/
+*.tmp.json
+
+# OS
+.DS_Store
+Thumbs.db
