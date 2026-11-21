@@ -2,8 +2,8 @@ name: Jumping Point 株Tube 文字起こし自動収集・Drive保存
 
 on:
   schedule:
-    # 毎日 日本時間 21:00（UTC 12:00）に実行
-    - cron: '0 12 * * *'
+    # 毎日 日本時間 20:00（UTC 11:00）に実行
+    - cron: '0 11 * * *'
   workflow_dispatch:
     inputs:
       dry_run:
